@@ -1,7 +1,8 @@
 {
     "name": "mcris112/laravel-hashidable",
-    "description": "Auto Hashids for Laravel Models and Routes",
+    "description": "LaravelHashidable - Hashids for Laravel Models and Routes",
     "type": "library",
+    "keywords": ["hashids", "hash", "hashidable", "laravel"],
     "license": "MIT",
     "authors": [
         {
