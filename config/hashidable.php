@@ -5,7 +5,7 @@ return [
      * Ensures hashids are unique to project. Preferrably, use a value
      * that won't change during the project's lifetime.
      */
-    'salt' => hash('sha256', 'laravel hashing algorithm'),
+    'salt' => hash('sha256', env('HASHIABLE_SALT', 'laravel hashing algorithm') ),
 
     /**
      * Length of the generated hashid.
