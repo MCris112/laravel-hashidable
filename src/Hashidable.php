@@ -5,29 +5,48 @@ namespace Mcris112\LaravelHashidable;
 trait Hashidable
 {
     /**
+     * Decode a hash or array of hashes
+     *
+     * @param string|array $hash
+     * @return string|array
+     */
+    public static function hashIdDecode(string|array $hash):string|array
+    {
+        $static = new static();
+        if($hash instanceof string) return $static->hashidableEncoder()->decode($hash);
+
+        $decodedIds = [];
+        foreach ($hash as $id) {
+            $decodedIds[] = $static->hashIdDecode($id);
+        }
+
+        return $decodedIds;
+    }
+
+    /**
      * Finds a model by the hashid
      *
      * @param string $hash
-     * @return \Illuminate\Database\Eloquent\Model
+     * @param array $columns
+     * @return \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Collection|static[]|static|null
      */
-    public static function findByHashid(string $hash)
+    public static function findByHashid(string|array $hash, array $columns = ['*'])
     {
         $static = new static();
-
-        return $static->find($static->hashidableEncoder()->decode($hash));
+        return $static->find($static->hashIdDecode($hash), $columns);
     }
 
     /**
      * Finds a model by the hashid or fails
      *
      * @param string $hash
-     * @return \Illuminate\Database\Eloquent\Model
+     * @param array $columns
+     * @return \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Collection|static[]|static|null 
      */
-    public static function findByHashidOrFail(string $hash)
+     public static function findByHashidOrFail(string $hash, array $columns = ['*'])
     {
         $static = new static();
-
-        return $static->findOrFail($static->hashidableEncoder()->decode($hash));
+        return $static->findOrFail( $static->hashIdDecode($hash), $columns);
     }
 
     /**
@@ -73,7 +92,7 @@ trait Hashidable
      *
      * @return \Mcris112\LaravelHashidable\Encoder
      */
-    final private function hashidableEncoder()
+    public final function hashidableEncoder()
     {
         $interfaces = class_implements(get_called_class());
         $exists = array_key_exists(HashidableConfigInterface::class, $interfaces);

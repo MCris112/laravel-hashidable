@@ -34,10 +34,15 @@ $user->id; // 1
 $user->hashid; // 3RwQaeoOR1E7qjYy
 
 User::find(1);
+
+// User::findByHashId( string|array $hashId, array $columns ); Returns a model or a collection of models
 User::findByHashId('3RwQaeoOR1E7qjYy');
 User::findByHashidOrFail('3RwQaeoOR1E7qjYy');
 
 User::whereHashid('3RwQaeoOR1E7qjYy')->first();
+
+User::hashIdDecode('3RwQaeoOR1E7qjYy'); //Returns the hash decoded,
+User::hashIdDecode(['3RwQaeoOR1E7qjYy', ...$hashes]); //This also can be as array
 ```
 
 ### WhereHashid
