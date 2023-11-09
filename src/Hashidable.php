@@ -17,7 +17,7 @@ trait Hashidable
 
         $decodedIds = [];
         foreach ($hash as $id) {
-            $decodedIds[] = $static->hashIdDecode($id);
+            $decodedIds[] = $static->hashidableEncoder()->decode($id);
         }
 
         return $decodedIds;
