@@ -2,6 +2,9 @@
 
 namespace Mcris112\LaravelHashidable;
 
+/**
+ * @property-read string $hashid
+ */
 trait Hashidable
 {
     /**
@@ -13,7 +16,7 @@ trait Hashidable
     public static function hashIdDecode(string|array $hash):string|array
     {
         $static = new static();
-        if($hash instanceof string) return $static->hashidableEncoder()->decode($hash);
+        if(is_string($hash)) return $static->hashidableEncoder()->decode($hash);
 
         $decodedIds = [];
         foreach ($hash as $id) {
@@ -79,11 +82,28 @@ trait Hashidable
     }
 
     /** @inheritDoc */
-    public function resolveRouteBinding($hash, $field = null)
+    public function resolveRouteBinding($value, $field = null)
     {
+        if ($field && $field !== 'hashid') {
+            return $this->where($field, $value)->first();
+        }
+
         return $this->where(
             $this->getKeyName(),
-            $this->hashidableEncoder()->decode($hash)
+            $this->hashidableEncoder()->decode($value)
+        )->firstOrFail();
+    }
+
+    /** @inheritDoc */
+    public function resolveChildRouteBinding($childType, $value, $field)
+    {
+        if ($field && $field !== 'hashid') {
+            return parent::resolveChildRouteBinding($childType, $value, $field);
+        }
+
+        return $this->where(
+            $this->getKeyName(),
+            $this->hashidableEncoder()->decode($value)
         )->firstOrFail();
     }
 

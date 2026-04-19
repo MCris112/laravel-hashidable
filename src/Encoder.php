@@ -55,13 +55,13 @@ class Encoder
     private function wrap(string $hash)
     {
         $array = [$hash];
-        $separator = $this->config['separator'];
+        $separator = $this->config['separator'] ?? '';
 
-        if ($prefix = $this->config['prefix']) {
+        if ($prefix = $this->config['prefix'] ?? null) {
             array_unshift($array, $prefix, $separator);
         }
 
-        if ($suffix = $this->config['suffix']) {
+        if ($suffix = $this->config['suffix'] ?? null) {
             array_push($array, $separator, $suffix);
         }
 
@@ -70,14 +70,20 @@ class Encoder
 
     private function unwrap(string $hash)
     {
-        $separator = $this->config['separator'];
+        $separator = $this->config['separator'] ?? '';
 
-        if ($prefix = $this->config['prefix']) {
-            $hash = ltrim($hash, $prefix . $separator);
+        if ($prefix = $this->config['prefix'] ?? null) {
+            $fullPrefix = $prefix . $separator;
+            if (str_starts_with($hash, $fullPrefix)) {
+                $hash = substr($hash, strlen($fullPrefix));
+            }
         }
 
-        if ($suffix = $this->config['suffix']) {
-            $hash = rtrim($hash, $separator . $suffix);
+        if ($suffix = $this->config['suffix'] ?? null) {
+            $fullSuffix = $separator . $suffix;
+            if (str_ends_with($hash, $fullSuffix)) {
+                $hash = substr($hash, 0, -strlen($fullSuffix));
+            }
         }
 
         return $hash;
