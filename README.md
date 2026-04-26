@@ -1,155 +1,181 @@
 # Laravel Hashidable
 
-> Laravel Hashidable uses [Hashidable](https://github.com/kayandra/hashidable) as main source
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mcris112/laravel-hashidable.svg?style=flat-square)](https://packagist.org/packages/mcris112/laravel-hashidable)
+[![License](https://img.shields.io/packagist/l/mcris112/laravel-hashidable.svg?style=flat-square)](https://packagist.org/packages/mcris112/laravel-hashidable)
 
-_I made this package because the main package from above never has been updated, that has a mistake in declaring types so when you want to use `User::whereHashid()`
+**Laravel Hashidable** provides a seamless way to use [Hashids](https://hashids.org/) in your Laravel models. It automatically handles encoding/decoding of IDs for routing and database lookups, keeping your internal IDs hidden from the public.
 
-## Installation
+This package is an enhanced fork of the original `kayandra/hashidable`, featuring improved type safety, caching support, global helpers, and fluent query builder integration.
 
-_Note: This package is built to work with Laravel versions greater than 7. It may work in older version, but this has not been tested._
+## ✨ Key Features
 
-```
+- 🛡️ **Automatic Route Model Binding**: Uses hashids in URLs instead of plain integers.
+- 🚀 **Performance Caching**: Decoded hashids can be cached to improve performance.
+- 🛠️ **Fluent Scopes**: Chainable methods like `whereHashid()` and `findByHashid()`.
+- 🧬 **Relation Support**: Easily load relations when finding by hashid using `with()`.
+- 🌍 **Global Helpers**: Simple `hashid_encode()` and `hashid_decode()` functions.
+- 🎨 **Customizable**: Per-model configuration for salts, lengths, and alphabets.
+
+---
+
+## 📥 Installation
+
+```bash
 composer require mcris112/laravel-hashidable
 ```
 
-## Setup
+## ⚙️ Setup
 
-Import the `Hashidable` trait and add it to your model.
+Add the `Hashidable` trait to your Eloquent model:
 
 ```php
 use Mcris112\LaravelHashidable\Hashidable;
+use Illuminate\Database\Eloquent\Model;
 
-Class User extends Model
+class User extends Model
 {
-  use Hashidable;
+    use Hashidable;
 }
 ```
 
-## Usage
+---
+
+## 🚀 Usage
+
+### Basic Operations
 
 ```php
 $user = User::find(1);
 
-$user->id; // 1
-$user->hashid; // 3RwQaeoOR1E7qjYy
+// Accessing the hashid
+echo $user->hashid; // e.g., "3RwQaeoOR1E7qjYy"
 
-User::find(1);
+// Finding by hashid
+$user = User::findByHashid("3RwQaeoOR1E7qjYy");
+$user = User::findByHashidOrFail("3RwQaeoOR1E7qjYy");
 
-// User::findByHashId( string|array $hashId, array $columns ); Returns a model or a collection of models
-User::findByHashId('3RwQaeoOR1E7qjYy');
-User::findByHashidOrFail('3RwQaeoOR1E7qjYy');
-
-User::whereHashid('3RwQaeoOR1E7qjYy')->first();
-
-User::hashIdDecode('3RwQaeoOR1E7qjYy'); //Returns the hash decoded,
-User::hashIdDecode(['3RwQaeoOR1E7qjYy', ...$hashes]); //This also can be as array
+// Decoding manually via model
+$id = User::hashIdDecode("3RwQaeoOR1E7qjYy"); // 1
 ```
 
-### WhereHashid
+### Advanced Querying & Relations
 
-This function needs two parameters.
-
-_$hashid_ needs to be a *string* and refers a plain hashed id text
-_$columnId_ needs to be a *string* in case that your primary key It is different
+Thanks to the new fluent scopes, you can now load relationships while finding by hashid:
 
 ```php
+// Find with relations (Fluent way)
+$user = User::with('posts', 'profile')->findByHashid($hashid);
 
-  User::whereHashid( string $hashid , string $columnId = 'id' )->first();
-
-  //Example
-
-  public function show(string $userId, Request $request)
-  {
-    // ...
-      $user = User::whereHashid($userId)->where('is_email_verified', true)->first();
-      // ...
-  }
-
+// Using whereHashid in complex queries
+$user = User::whereHashid($hashid)
+    ->where('active', true)
+    ->with('orders')
+    ->firstOrFail();
 ```
 
-### Route Model Binding
+### Global Helpers
 
-Assuming we have a route resource defined as follows:
+Decode or encode hashids anywhere without needing a model instance:
 
 ```php
-Route::apiResource('users', UserController::class);
+// Decode hashid for a specific model class
+$id = hashid_decode(User::class, "3RwQaeoOR1E7qjYy");
+
+// Encode an ID for a specific model
+$hash = hashid_encode(User::class, 1);
 ```
 
-This package does not affect route model bindings, the only difference is, instead of placing the id in the generated route, it uses the hashid instead.
+---
 
-So, `route('users.show', $user)` returns `/users/3RwQaeoOR1E7qjYy`;
+## 🔗 Route Model Binding
 
-When you define your controller that auto-resolves a model in the parameters, it will work as always.
+This package automatically handles Route Model Binding. Instead of IDs, your routes will use hashids:
 
 ```php
-public function show(Request $request, User $user)
+// routes/web.php
+Route::get('/users/{user}', [UserController::class, 'show']);
+
+// In your controller
+public function show(User $user) 
 {
-  return $user; // Works just fine
+    return view('users.show', compact('user'));
 }
 ```
 
-## Configuring
-
-First, publish the config file using:
-
+Generating links automatically uses the hashid:
+```php
+$url = route('users.show', $user); // /users/3RwQaeoOR1E7qjYy
 ```
+
+---
+
+## ⚡ Performance Caching
+
+If you find yourself decoding the same hashids frequently, you can enable caching in the config. This will store the decoded integer ID in your cache store.
+
+```php
+// config/hashidable.php
+'cache' => [
+    'enabled' => true,
+    'ttl' => 86400, // 24 hours
+],
+```
+
+---
+
+## 🛠️ Configuration
+
+Publish the configuration file:
+
+```bash
 php artisan vendor:publish --tag=hashidable.config
 ```
 
-The available configuration options are:
+### Global Config (`config/hashidable.php`)
 
-```php
-return [
-    /**
-     * Length of the generated hashid.
-     */
-    'length' => 16,
-
-    /**
-     * Character set used to generate the hashids.
-     */
-    'charset' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890',
-
-    /**
-     * Prefix attached to the generated hash.
-     */
-    'prefix' => '',
-
-    /**
-     * Suffix attached to the generated hash.
-     */
-    'suffix' => '',
-
-    /**
-     * If a prefix of suffix is defined, we use this as a separator
-     * between the prefix/suffix.
-     */
-    'separator' => '-',
-];
-```
+| Option | Description | Default |
+|--------|-------------|---------|
+| `salt` | Unique salt for hash generation | `env(HASHIABLE_SALT)` |
+| `length` | Minimum length of generated hash | `16` |
+| `charset` | Characters used in the hashid | `a-zA-Z0-9` |
+| `prefix` | Optional prefix for hashids | `""` |
+| `suffix` | Optional suffix for hashids | `""` |
+| `separator`| Separator between prefix/suffix | `"-"` |
 
 ### Per-Model Configuration
 
-You can also extend the global configuration on a per-model basis. To do this, your model should implement the `Mcris112\LaravelHashidable\HashidableConfigInterface` and define the `hashidableConfig()` method on the model.
-
-This method returns an array or subset of options similar to the global configuration.
+Implement `HashidableConfigInterface` to customize settings for a specific model:
 
 ```php
+use Mcris112\LaravelHashidable\HashidableConfigInterface;
+
+class Post extends Model implements HashidableConfigInterface
+{
+    use Hashidable;
+
     public function hashidableConfig()
     {
-        return ['prefix' => 'app'];
+        return [
+            'length' => 10,
+            'prefix' => 'post',
+            'separator' => '_',
+        ];
     }
+}
 ```
 
-## FAQs
+---
 
-<details>
-  <summary>Where are the generated hashes stored?</summary>
+## ❓ FAQ
 
-Hashidable does not touch the database to store any sort of metadata. What it does instead is use an internal encoder/decoder to dynamically calculate the hashes.
+**Q: Are hashes stored in the database?**  
+A: No. Hashes are calculated dynamically based on your model's ID and salt.
 
-</details>
+**Q: What happens if I change my salt?**  
+A: All existing hashids will change. It's recommended to set a permanent salt in your `.env` file (`HASHIABLE_SALT`).
 
-## License
+---
 
-[MIT](/LICENSE.md)
+## 📄 License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.

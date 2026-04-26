@@ -23,10 +23,10 @@ class Encoder
     /**
      * Generates a unique hashid based on a provided integer
      *
-     * @param integer $id
+     * @param int $id
      * @return string
      */
-    public function encode(int $id)
+    public function encode(int $id): string
     {
         return $this->wrap($this->encoder->encode($id));
     }
@@ -35,24 +35,36 @@ class Encoder
      * Decode a model hashid to the original id.
      *
      * @param string $hash
-     * @return integer
+     * @return int|false
      */
-    public function decode(string $hash)
+    public function decode(string $hash): int|false
     {
         $hashArray = $this->encoder->decode($this->unwrap($hash));
 
         return reset($hashArray);
     }
 
-    public function hashSaltFromString(string $salt)
+    /**
+     * Generate a salt from a string
+     *
+     * @param string $salt
+     * @return string
+     */
+    public function hashSaltFromString(string $salt): string
     {
-        $moreSalt = $salt. '\\' . ($this->config['salt'] ?? '');
+        $moreSalt = $salt . '\\' . ($this->config['salt'] ?? '');
         $input = array_fill(0, $this->config['length'], $moreSalt);
 
         return hash('sha512', serialize($input));
     }
 
-    private function wrap(string $hash)
+    /**
+     * Wrap the hash with prefix/suffix
+     *
+     * @param string $hash
+     * @return string
+     */
+    private function wrap(string $hash): string
     {
         $array = [$hash];
         $separator = $this->config['separator'] ?? '';
@@ -68,7 +80,13 @@ class Encoder
         return implode('', $array);
     }
 
-    private function unwrap(string $hash)
+    /**
+     * Unwrap the hash from prefix/suffix
+     *
+     * @param string $hash
+     * @return string
+     */
+    private function unwrap(string $hash): string
     {
         $separator = $this->config['separator'] ?? '';
 

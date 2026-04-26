@@ -24,6 +24,9 @@
         "orchestra/database": "^5.1"
     },
     "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
         "psr-4": {
             "Mcris112\\LaravelHashidable\\": "src/"
         }

@@ -32,4 +32,12 @@ return [
      * between the prefix/suffix.
      */
     'separator' => '-',
+
+    /**
+     * Cache settings for decoded hashids.
+     */
+    'cache' => [
+        'enabled' => env('HASHIDABLE_CACHE_ENABLED', false),
+        'ttl' => env('HASHIDABLE_CACHE_TTL', 86400), // 24 hours
+    ],
 ];
