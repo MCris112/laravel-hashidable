@@ -99,6 +99,25 @@ trait Hashidable
     }
 
     /**
+     * Scope to filter by hashid using orWhere
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string|array $hash
+     * @param string|null $column
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOrWhereHashid($query, $hash, string $column = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $column = $column ?? $this->getKeyName();
+
+        if (is_array($hash)) {
+            return $query->orWhereIn($column, static::hashIdDecode($hash));
+        }
+
+        return $query->orWhere($column, static::hashIdDecode($hash));
+    }
+
+    /**
      * Finds a model by the hashid
      * 
      * @deprecated Use whereHashid scope instead
@@ -109,6 +128,19 @@ trait Hashidable
     public static function whereHashid(string $hash, string $column = 'id'): \Illuminate\Database\Eloquent\Builder
     {
         return static::query()->whereHashid($hash, $column);
+    }
+
+    /**
+     * Finds a model by the hashid using orWhere
+     * 
+     * @deprecated Use orWhereHashid scope instead
+     * @param string $hash
+     * @param string $column
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public static function orWhereHashid(string $hash, string $column = 'id'): \Illuminate\Database\Eloquent\Builder
+    {
+        return static::query()->orWhereHashid($hash, $column);
     }
 
     /**

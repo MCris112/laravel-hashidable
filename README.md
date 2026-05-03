@@ -11,8 +11,9 @@ This package is an enhanced fork of the original `kayandra/hashidable`, featurin
 
 - 🛡️ **Automatic Route Model Binding**: Uses hashids in URLs instead of plain integers.
 - 🚀 **Performance Caching**: Decoded hashids can be cached to improve performance.
-- 🛠️ **Fluent Scopes**: Chainable methods like `whereHashid()` and `findByHashid()`.
+- 🛠️ **Fluent Scopes**: Chainable methods like `whereHashid()`, `orWhereHashid()`, and `findByHashid()`.
 - 🧬 **Relation Support**: Easily load relations when finding by hashid using `with()`.
+- ✅ **Custom Validation**: Built-in `hashid_exists` rule for validating hashids in requests.
 - 🌍 **Global Helpers**: Simple `hashid_encode()` and `hashid_decode()` functions.
 - 🎨 **Customizable**: Per-model configuration for salts, lengths, and alphabets.
 
@@ -71,7 +72,31 @@ $user = User::whereHashid($hashid)
     ->where('active', true)
     ->with('orders')
     ->firstOrFail();
+
+// Using orWhereHashid
+$user = User::where('email', 'admin@example.com')
+    ->orWhereHashid($hashid)
+    ->first();
 ```
+
+### Validation Rule
+
+You can validate that a hashid exists in the database using the `hashid_exists` rule. This automatically decodes the hashid before checking the database.
+
+```php
+use Illuminate\Http\Request;
+
+public function update(Request $request)
+{
+    $request->validate([
+        'user_id' => 'required|hashid_exists:App\Models\User,id',
+    ]);
+}
+```
+
+The rule accepts two parameters:
+1. The **Model class** or **Table name**.
+2. The **Database column** (optional, defaults to the model's primary key or `id`).
 
 ### Global Helpers
 
