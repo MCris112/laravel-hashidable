@@ -87,7 +87,7 @@ trait Hashidable
      * @param string|null $column
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeWhereHashid($query, $hash, string $column = null): \Illuminate\Database\Eloquent\Builder
+    public function scopeWhereHashid($query, $hash, ?string $column = null): \Illuminate\Database\Eloquent\Builder
     {
         $column = $column ?? $this->getKeyName();
 
@@ -106,7 +106,7 @@ trait Hashidable
      * @param string|null $column
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeOrWhereHashid($query, $hash, string $column = null): \Illuminate\Database\Eloquent\Builder
+    public function scopeOrWhereHashid($query, $hash, ?string $column = null): \Illuminate\Database\Eloquent\Builder
     {
         $column = $column ?? $this->getKeyName();
 
